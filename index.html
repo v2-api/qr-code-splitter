@@ -1,0 +1,120 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Data Splitter</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+        #output {
+            margin-top: 20px;
+        }
+        #qr-display {
+            width: 256px;
+            height: 256px;
+            margin: auto;
+            margin-top: 20px;
+            border: 1px solid #ccc;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 10px;
+            font-size: 16px;
+        }
+        input[type="file"] {
+            margin: 20px;
+        }
+        #mobile-link {
+            margin-top: 30px;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+    <h1>QR Code Data Splitter</h1>
+    <input type="file" id="fileInput" accept=".txt, .csv, .json, .html">
+    <textarea id="textInput" placeholder="Or paste text here..." rows="5" cols="50"></textarea><br>
+    <input type="url" id="linkInput" placeholder="Or enter a link..."><br>
+    <button onclick="processData()">Generate QR Codes</button>
+
+    <div id="output">
+        <div id="qr-display"></div>
+        <button id="playButton" onclick="playQRCodes()" style="display:none;">Play QR Codes</button>
+    </div>
+
+    <div id="mobile-link">
+        <a href="mobile.html">Go to Mobile Scanner</a>
+    </div>
+
+    <script>
+        let qrChunks = [];
+        let currentIndex = 0;
+        let qrCode;
+        const chunkSize = 100; // Number of characters per chunk
+
+        function processData() {
+            const fileInput = document.getElementById("fileInput").files[0];
+            const textInput = document.getElementById("textInput").value;
+            const linkInput = document.getElementById("linkInput").value;
+            
+            if (fileInput) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    splitIntoChunks(e.target.result);
+                };
+                reader.readAsText(fileInput);
+            } else if (textInput) {
+                splitIntoChunks(textInput);
+            } else if (linkInput) {
+                splitIntoChunks(linkInput);
+            } else {
+                alert("Please upload a file, paste text, or enter a link.");
+            }
+        }
+
+        function splitIntoChunks(data) {
+            qrChunks = [];
+            
+            // Add "START" QR Code
+            qrChunks.push("START");
+
+            for (let i = 0; i < data.length; i += chunkSize) {
+                qrChunks.push(data.substring(i, i + chunkSize));
+            }
+            
+            // Add "END" QR Code
+            qrChunks.push("END");
+
+            displayQRCode(0);
+            document.getElementById("playButton").style.display = "inline-block";
+        }
+
+        function displayQRCode(index) {
+            const qrDisplay = document.getElementById("qr-display");
+            qrDisplay.innerHTML = "";
+            qrCode = new QRCode(qrDisplay, {
+                text: qrChunks[index],
+                width: 256,
+                height: 256
+            });
+        }
+
+        function playQRCodes() {
+            currentIndex = 0;
+            function showNext() {
+                if (currentIndex < qrChunks.length) {
+                    displayQRCode(currentIndex);
+                    currentIndex++;
+                    setTimeout(showNext, 1000); // Change QR code every second
+                }
+            }
+            showNext();
+        }
+    </script>
+</body>
+</html>
