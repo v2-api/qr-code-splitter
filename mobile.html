@@ -1,4 +1,3 @@
-<!-- mobile.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,7 +10,7 @@
             text-align: center;
             margin: 20px;
         }
-        #qr-video {
+        #qr-reader {
             width: 100%;
             max-width: 400px;
             margin: 20px auto;
@@ -25,44 +24,57 @@
             border: 1px solid #ccc;
         }
     </style>
-    <script src="https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js"></script>
+    <!-- Correct CDN for html5-qrcode -->
+    <script src="https://unpkg.com/html5-qrcode/html5-qrcode.min.js"></script>
 </head>
 <body>
     <h1>QR Code Scanner</h1>
-    <div id="qr-reader" style="width: 300px; margin: auto;"></div>
+    <div id="qr-reader" style="width: 100%; max-width: 400px; margin: auto;"></div>
     <div id="output"></div>
 
     <script>
-        let collectedData = '';
-        let scanning = true;
+        // Check if the HTML5Qrcode object is available before proceeding
+        if (typeof Html5Qrcode === 'undefined') {
+            console.error("Html5Qrcode is not defined. Ensure the library is correctly loaded.");
+        } else {
+            let collectedData = '';
+            let scanning = true;
 
-        function onScanSuccess(decodedText) {
-            if (!scanning) return;
+            function onScanSuccess(decodedText, decodedResult) {
+                if (!scanning) return;
 
-            if (decodedText === 'START') {
-                collectedData = '';
-            } else if (decodedText === 'END') {
-                scanning = false;
-                document.getElementById('output').textContent = collectedData;
-            } else {
-                collectedData += decodedText;
+                if (decodedText === 'START') {
+                    collectedData = '';
+                } else if (decodedText === 'END') {
+                    scanning = false;
+                    document.getElementById('output').textContent = collectedData;
+                } else {
+                    collectedData += decodedText;
+                }
             }
-        }
 
-        function onScanFailure(error) {
-            // Ignore errors for now
-        }
+            function onScanFailure(error) {
+                // Handle errors if needed
+            }
 
-        let html5QrCode = new Html5Qrcode("qr-reader");
-        html5QrCode.start(
-            { facingMode: "environment" }, // Use the back camera if available
-            {
-                fps: 10,
-                qrbox: { width: 250, height: 250 }
-            },
-            onScanSuccess,
-            onScanFailure
-        );
+            // Initialize the QR code scanner
+            let html5QrCode = new Html5Qrcode("qr-reader");
+
+            // Start the QR code scanner
+            html5QrCode.start(
+                { facingMode: "environment" }, // Use the back camera
+                {
+                    fps: 10, // Frames per second (higher value = more responsive scanning)
+                    qrbox: { width: 250, height: 250 }, // QR code scanning box dimensions
+                    aspectRatio: 1, // Maintain a square aspect ratio for the camera feed
+                },
+                onScanSuccess, // Success callback
+                onScanFailure  // Failure callback
+            ).catch(err => {
+                // Handle errors in starting the QR code scanner
+                console.error("Error starting QR Code scanner:", err);
+            });
+        }
     </script>
 </body>
 </html>
