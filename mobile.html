@@ -1,0 +1,68 @@
+<!-- mobile.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Scanner</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+        #qr-video {
+            width: 100%;
+            max-width: 400px;
+            margin: 20px auto;
+        }
+        #output {
+            margin-top: 20px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            background-color: #f0f0f0;
+            padding: 10px;
+            border: 1px solid #ccc;
+        }
+    </style>
+    <script src="https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js"></script>
+</head>
+<body>
+    <h1>QR Code Scanner</h1>
+    <div id="qr-reader" style="width: 300px; margin: auto;"></div>
+    <div id="output"></div>
+
+    <script>
+        let collectedData = '';
+        let scanning = true;
+
+        function onScanSuccess(decodedText) {
+            if (!scanning) return;
+
+            if (decodedText === 'START') {
+                collectedData = '';
+            } else if (decodedText === 'END') {
+                scanning = false;
+                document.getElementById('output').textContent = collectedData;
+            } else {
+                collectedData += decodedText;
+            }
+        }
+
+        function onScanFailure(error) {
+            // Ignore errors for now
+        }
+
+        let html5QrCode = new Html5Qrcode("qr-reader");
+        html5QrCode.start(
+            { facingMode: "environment" }, // Use the back camera if available
+            {
+                fps: 10,
+                qrbox: { width: 250, height: 250 }
+            },
+            onScanSuccess,
+            onScanFailure
+        );
+    </script>
+</body>
+</html>
